@@ -2,6 +2,8 @@ package com.driver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -12,37 +14,41 @@ public class OrderRepository {
 
 	HashMap<String ,Order> orderMap=new HashMap<>();
 	HashMap<String ,DeliveryPartner> partnerMap=new HashMap<>();
-	HashMap<String ,List<String>> orderpartnerMap=new HashMap<>();
-	HashMap<String ,Order>UnassignedOrderMap=new HashMap<>();
+	HashMap<String ,String> orderpartnerMap=new HashMap<>();
+	HashMap<String ,HashSet<String> >partnerOrderMap=new HashMap<>();
 	
 	public void addOrder(Order order) {
 		// TODO Auto-generated method stub
 		orderMap.put(order.getId(), order);
-		UnassignedOrderMap.put(order.getId(), order);
+		
 	}
 
 	public void addPartner(String partnerId) {
 		// TODO Auto-generated method stub
 		DeliveryPartner p=new DeliveryPartner(partnerId);
-		
+		p.setId(partnerId);
 		partnerMap.put(partnerId,p );
 		
 	}
 
 	public void addOrderPartnerPair(String orderId, String partnerId) {
 		// TODO Auto-generated method stub
-		if(orderpartnerMap.containsKey(partnerId))
+		orderpartnerMap.put(orderId, partnerId);
+		if(partnerOrderMap.containsKey(partnerId))
 		{
-			List<String> l=orderpartnerMap.get(partnerId);
+			HashSet<String> l=partnerOrderMap.get(partnerId);
 			l.add(orderId);
-			UnassignedOrderMap.remove(orderId);
-			orderpartnerMap.put(partnerId, l);
+			DeliveryPartner p=partnerMap.get(partnerId);
+			p.setNumberOfOrders(l.size());
+			partnerOrderMap.put(partnerId, l);
 		}
 		else
 		{
-			List<String>l=new ArrayList<>();
+			HashSet<String>l=new HashSet<>();
 			l.add(orderId);
-			orderpartnerMap.put(partnerId, l);
+			partnerOrderMap.put(partnerId, l);
+			DeliveryPartner p=partnerMap.get(partnerId);
+			p.setNumberOfOrders(1);
 		}
 	}
 
@@ -58,12 +64,31 @@ public class OrderRepository {
 
 	public Integer getOrderCountByPartnerId(String partnerId) {
 		// TODO Auto-generated method stub
-		return orderpartnerMap.get(partnerId).size();
+		Integer c=0;
+		for(String str:orderpartnerMap.values())
+		{
+			if(str.endsWith(partnerId))
+			{
+				c++;
+			}
+			
+		}
+		return c;
 	}
 
 	public List<String> getOrdersByPartnerId(String partnerId) {
 		// TODO Auto-generated method stub
-		return orderpartnerMap.get(partnerId);
+		
+		List<String> l=new ArrayList<>();
+		for(String str:orderpartnerMap.values())
+		{
+			if(str.endsWith(partnerId))
+			{
+				l.add(str);
+			}
+			
+		}
+		return l;
 	}
 
 	public List<String> getAllOrders() {
@@ -76,15 +101,29 @@ public class OrderRepository {
 		return l;
 	}
 
-	public Integer getOrdersLeftAfterGivenTimeByPartnerId(int time, String partnerId) {
+	public Integer getOrdersLeftAfterGivenTimeByPartnerId(String time, String partnerId) {
 		// TODO Auto-generated method stub
-		int c=0;
-		List<String> l=orderpartnerMap.get(partnerId);
-		for( String  s:l)
+	    Integer h=Integer.valueOf(time.substring(0, 2));
+		Integer m=Integer.valueOf(time.substring(3));
+		Integer t=h*60+m;
+		
+		Integer c=0;
+		if(partnerOrderMap.containsKey(partnerId))
 		{
-			Order order=orderMap.get(s);
-		    if(order.getDeliveryTime()<time)
-		    	c++;
+		HashSet<String> orders=partnerOrderMap.get(partnerId);
+		for(String o:orders)
+		{
+			if(orderMap.containsKey(o))
+			{
+				Order currorder=orderMap.get(o);
+				if(t<currorder.getDeliveryTime())
+				{
+					c++;
+				}
+			}
+		}
+			
+			
 		}
 		return c;
 	}
@@ -95,46 +134,73 @@ public class OrderRepository {
 		return orderMap.size()-orderpartnerMap.size();
 	}
 
-	public int getLastDeliveryTimeByPartnerId(String partnerId) {
+	public String getLastDeliveryTimeByPartnerId(String partnerId) {
 		// TODO Auto-generated method stub
-		int c=0;
-		List<String> l=orderpartnerMap.get(partnerId);
-		for( String  s:l)
+		int t=0;
+		if(partnerOrderMap.containsKey(partnerId))
 		{
-			Order order=orderMap.get(s);
-		    if(order.getDeliveryTime()>c)
-		    	c=order.getDeliveryTime();
+			
+		HashSet<String> orders=partnerOrderMap.get(partnerId);
+		for(String o:orders)
+		{
+			if(orderMap.containsKey(o))
+			{
+				Order currorder=orderMap.get(o);
+				if(t<currorder.getDeliveryTime())
+				{
+					t=currorder.getDeliveryTime();
+				}
+			}
 		}
-		return c;
+			
+			
+		}
+		 Integer h=t/60;
+		 Integer m=t%60;
+		 String hr=String.valueOf(h);
+		 String mn=String.valueOf(m);
+		 if(hr.length()==1)
+			 hr="0"+hr;
+		 if(mn.length()==1)
+			 mn="0"+mn;
+		 
+		 
+		
+		return hr+":"+mn;
 	}
 
 	public void deletePartnerById(String partnerId) {
 		// TODO Auto-generated method stub
 		
 		partnerMap.remove(partnerId);
-	    List<String> l=orderpartnerMap.get(partnerId);
-	    orderpartnerMap.remove(partnerId);
-	    for(String s:l)
-	    {
-	    	UnassignedOrderMap.put(s,orderMap.get(s) );
-	    }
-		
+		Iterator<Map.Entry<String, String>> itr = orderpartnerMap.entrySet().iterator();
+        
+        while(itr.hasNext())
+        {
+             Map.Entry<String, String> entry = itr.next();
+            if(entry.getValue().equals(partnerId))
+            {
+            	orderpartnerMap.remove(entry.getKey());
+            }
+        }
 	}
 
 	public void deleteOrderById(String orderId) {
 		// TODO Auto-generated method stub
-		orderMap.remove(orderId);
-		UnassignedOrderMap.remove(orderId);
-		for(Map.Entry m : orderpartnerMap.entrySet())
+		
+		String partnerId=orderpartnerMap.get(orderId);
+		HashSet<String> orders=partnerOrderMap.get(partnerId);
+		orders.remove(orderId);
+		DeliveryPartner partner=partnerMap.get(partnerId);
+		partner.setNumberOfOrders(orders.size());
+		orderpartnerMap.remove(orderId);
+		if(orderMap.containsKey(orderId))
 		{
-			List<String>l=(List<String>) m.getValue();
-			
-			if(l.contains(orderId))
-			{
-				l.remove(orderId);
-			}
+			orderMap.remove(orderId);
+		}
+		
 		}
 	}
 	
 	
-}
+
