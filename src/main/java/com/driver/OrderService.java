@@ -60,12 +60,7 @@ public class OrderService {
 
 	public String getLastDeliveryTimeByPartnerId(String partnerId) {
 		// TODO Auto-generated method stub
-		String time="";
-		int t=repo.getLastDeliveryTimeByPartnerId(partnerId);
-		int hr=t/60;
-		int m=t%60;
-		time=""+hr+":"+m;
-		return time;
+		return repo.getLastDeliveryTimeByPartnerId(partnerId);
 	}
 
 	public void deletePartnerById(String partnerId) {
@@ -76,13 +71,9 @@ public class OrderService {
 
 	public Integer getOrdersLeftAfterGivenTimeByPartnerId(String time, String partnerId) {
 		// TODO Auto-generated method stub
-		int ttime=0;
-		String timehr=""+time.charAt(0)+time.charAt(1);
-    	int timeinhr=Integer.parseInt(timehr);
-    	String timemn=""+time.charAt(3)+time.charAt(4);
-    	int timeinmn=Integer.parseInt(timemn);
-    	ttime=timeinhr*60+timeinmn;
-		return repo.getOrdersLeftAfterGivenTimeByPartnerId(ttime,partnerId);
+		
+		
+		return repo.getOrdersLeftAfterGivenTimeByPartnerId(time,partnerId);
 	}
 
 	public void deleteOrderById(String orderId) {
