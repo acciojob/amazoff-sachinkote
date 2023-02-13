@@ -64,30 +64,15 @@ public class OrderRepository {
 
 	public Integer getOrderCountByPartnerId(String partnerId) {
 		// TODO Auto-generated method stub
-		Integer c=0;
-		for(String str:orderpartnerMap.values())
-		{
-			if(str.endsWith(partnerId))
-			{
-				c++;
-			}
-			
-		}
-		return c;
+		
+		 return partnerOrderMap.get(partnerId).size();
 	}
 
 	public List<String> getOrdersByPartnerId(String partnerId) {
 		// TODO Auto-generated method stub
 		
-		List<String> l=new ArrayList<>();
-		for(String str:orderpartnerMap.values())
-		{
-			if(str.endsWith(partnerId))
-			{
-				l.add(str);
-			}
-			
-		}
+		List<String> l=(List<String>) partnerOrderMap.get(partnerId);
+		
 		return l;
 	}
 
@@ -183,6 +168,7 @@ public class OrderRepository {
             	orderpartnerMap.remove(entry.getKey());
             }
         }
+        partnerOrderMap.remove(partnerId);
 	}
 
 	public void deleteOrderById(String orderId) {
