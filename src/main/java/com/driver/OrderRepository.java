@@ -23,8 +23,8 @@ public class OrderRepository {
 
 	public void addPartner(String partnerId) {
 		// TODO Auto-generated method stub
-		DeliveryPartner p=new DeliveryPartner();
-		p.setId(partnerId);
+		DeliveryPartner p=new DeliveryPartner(partnerId);
+		
 		partnerMap.put(partnerId,p );
 		
 	}
@@ -92,7 +92,7 @@ public class OrderRepository {
 	public Integer getCountOfUnassignedOrders() {
 		// TODO Auto-generated method stub
 		
-		return UnassignedOrderMap.size();
+		return orderMap.size()-orderpartnerMap.size();
 	}
 
 	public int getLastDeliveryTimeByPartnerId(String partnerId) {
